@@ -23,6 +23,9 @@
         width: 100%;
         height: 100%;
     }
+    rect{
+        fill:orange;
+    }
     </style>
 
 </head>
@@ -31,9 +34,11 @@
     <div id="map"></div>
 
     <script type="text/javascript">
-    var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/examples.map-zr0njcqy/{z}/{x}/{y}.png', {
+    /*var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/examples.map-zr0njcqy/{z}/{x}/{y}.png', {
         attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
-    });
+    });*/
+    var mapboxTiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'});
 
     var map = L.map('map')
         .addLayer(mapboxTiles)
@@ -46,7 +51,7 @@
         var dataPoints = data.features.filter(function(d) {
             return d.properties.id == "route1"
         });
-
+        console.log(dataPoints[dataPoints.length-1]);
         var transform = d3.geo.transform ({
             point: projectPoint
         });
@@ -92,8 +97,24 @@
                 .style("stroke", "black")
                 .style("stroke-width", "2");
 
+        var bus = g.append("rect");
+        bus.attr("width", 15).attr("height", 15).attr("id", "bus");
+
         map.on("viewreset", reset);
         reset();
+
+        var location1 = applyLatLng(dataPoints[0]);
+        var location2 = applyLatLng(dataPoints[dataPoints.length-1]);
+        bus.attr("transform", "translate(" + location1.x + "," + location1.y + ")");
+
+        setInterval(function() {
+            var d = new Date() + "";
+            var hours_min = d.substring(16,21);
+            //TODO: get start time of bus and update bus location depending on that time and duration of total commute.
+        }, 1000);
+
+        L.marker([dataPoints[0].geometry.coordinates[1], dataPoints[0].geometry.coordinates[0]]).addTo(map).bindPopup("From this location (e.g. A Lot)").openPopup();
+        L.marker([dataPoints[dataPoints.length-1].geometry.coordinates[1], dataPoints[dataPoints.length-1].geometry.coordinates[0]]).addTo(map).bindPopup('To this location (e.g. Uris)').openPopup();
 
         function reset() {
             var bounds = d3path.bounds(data),
@@ -107,13 +128,13 @@
                         applyLatLng(d).y + ")";
                 });
                 
-        svg.attr("width", bottomRight[0] - topLeft[0] + 120)
-        .attr("height", bottomRight[1] - topLeft[1] + 120)
-        .style("left", topLeft[0] - 50 + "px")
-        .style("top", topLeft[1] - 50 + "px");
+            svg.attr("width", bottomRight[0] - topLeft[0] + 120)
+                .attr("height", bottomRight[1] - topLeft[1] + 120)
+                .style("left", topLeft[0] - 50 + "px")
+                .style("top", topLeft[1] - 50 + "px");
 
-        linePath.attr("d", toLine)
-        g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
+            linePath.attr("d", toLine)
+            g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
         }
 
 });
