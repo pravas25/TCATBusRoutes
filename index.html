@@ -31,9 +31,9 @@
     <div id="map"></div>
 
     <script type="text/javascript">
-    var mapboxTiles = L.tileLayer('https://{s}.tiles.mapbox.com/v3/examples.map-zr0njcqy/{z}/{x}/{y}.png', {
-        attribution: '<a href="http://www.mapbox.com/about/maps/" target="_blank">Terms &amp; Feedback</a>'
-    });
+
+    var mapboxTiles = L.tileLayer('http://{s}.tile.osm.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; <a href="http://osm.org/copyright">OpenStreetMap</a> contributors'});
 
     var map = L.map('map')
         .addLayer(mapboxTiles)
@@ -43,8 +43,15 @@
     var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
     d3.json("points.geojson", function(data) {
+
+        // All locations along the route including turns and stops
         var dataPoints = data.features.filter(function(d) {
             return d.properties.id == "route1"
+        });
+
+        // Just the stops along the route
+        var filteredData =  dataPoints.filter(function(d) {
+            return (d.properties.time != null || d.properties.routeDistance != null || d.properties.distanceFromBeginning != null || d.properties.distanceToNext != null) 
         });
 
         var transform = d3.geo.transform ({
@@ -73,16 +80,15 @@
             return map.latLngToLayerPoint(new L.LatLng(y, x))
         }
 
+        // Adds a circle for each bus stop 
         var busStops = g.selectAll("circle")
-            .data(dataPoints)
+            .data(filteredData)
             .enter()
             .append("circle")
             .attr("r",2)
-            .attr("class", function (d) {
-               return "waypoints" + "c" + d.properties.time
-            })
             .style("fill", "blue");
 
+        // Creates a line along the bus route
         var linePath = g.selectAll(".lineConnect")
                 .data([dataPoints])
                 .enter()
@@ -92,8 +98,14 @@
                 .style("stroke", "black")
                 .style("stroke-width", "2");
 
+        // Bus marker that moves along the route
+        var bus = g.append("circle")
+            .attr("r", 5)
+            .attr("id", "bus")
+            .attr("class", "travelBus");
+
+        // Resets the svg when zooming in and out of the map
         map.on("viewreset", reset);
-        reset();
 
         function reset() {
             var bounds = d3path.bounds(data),
@@ -115,6 +127,59 @@
         linePath.attr("d", toLine)
         g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
         }
+
+    //BUS MARKER MOVEMENT
+
+        //Returns current time in the format "HMS". Example: 2:02:36 PM = "140236"
+        var timeNow = function() { 
+            var format = d3.time.format("%H%M%S");
+            return format(new Date());
+        }
+
+        // Calculates the proportion of the length along a route a bus is at a given time. Example: If at 2:30 PM, halfway through the route, will return .5
+        var lengthAtTimeRatio = function (t , dataPoints) {
+            var currT = dataPoints[0].properties.time;
+            var diff = Math.abs (t - currT);
+            var length = 0;
+            for (var i = 0; i < dataPoints.length; i++) {
+                var newdiff = Math.abs (t - dataPoints[i].properties.time);
+                if (newdiff < diff) {
+                    diff = newdiff;
+                    currT = dataPoints[i].properties.time;
+                    if (currT > t) {
+                        if (i > 0) {
+                        var tDiff = ( t - dataPoints[i-1].properties.time ) / ( currT - dataPoints[i-1].properties.time );
+                        length = ( tDiff * dataPoints[i-1].properties.distanceToNext ) + (dataPoints[i-1].properties.distanceFromBeginning);
+                        }
+                    }
+                    else  {
+                        if (i < dataPoints.length - 1) {
+                        var tDiff = ( t - dataPoints[i].properties.time ) / ( dataPoints[i+1].properties.time - currT );
+                        length = ( tDiff * dataPoints[i].properties.distanceToNext ) + (dataPoints[i].properties.distanceFromBeginning);
+                        }
+                    }
+                }
+            }
+            var ratio = length / dataPoints[0].properties.routeDistance;
+            if (ratio > 1 ) {return 1;} else {return ratio;}
+        };
+
+        // Moves the marker to the position it is at a specific time
+        var reCalcPos = function (t, d) {
+            var totalL = linePath.node().getTotalLength(); 
+            var lengthRatio = lengthAtTimeRatio(t,d);
+            var l = totalL * lengthRatio;
+            var p = linePath.node().getPointAtLength(l);
+            var bus = d3.select("#bus");
+            bus.attr("transform", "translate(" + p.x + "," + p.y + ")");
+        };
+
+        //Repeatedly applies the reCalcPos function on current time
+        d3.timer( function() {
+            var t = timeNow();
+            reCalcPos(t, filteredData);
+        })
+        reset();
 
 });
 
