@@ -23,6 +23,9 @@
         width: 100%;
         height: 100%;
     }
+    rect{
+        fill:orange;
+    }
     </style>
 
 </head>
@@ -42,7 +45,7 @@
     var svg = d3.select(map.getPanes().overlayPane).append("svg");
     var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-    d3.json("points.geojson", function(data) {
+    d3.json("points1.geojson", function(data) {
 
         // All locations along the route including turns and stops
         var dataPoints = data.features.filter(function(d) {
@@ -119,13 +122,13 @@
                         applyLatLng(d).y + ")";
                 });
                 
-        svg.attr("width", bottomRight[0] - topLeft[0] + 120)
-        .attr("height", bottomRight[1] - topLeft[1] + 120)
-        .style("left", topLeft[0] - 50 + "px")
-        .style("top", topLeft[1] - 50 + "px");
+            svg.attr("width", bottomRight[0] - topLeft[0] + 120)
+                .attr("height", bottomRight[1] - topLeft[1] + 120)
+                .style("left", topLeft[0] - 50 + "px")
+                .style("top", topLeft[1] - 50 + "px");
 
-        linePath.attr("d", toLine)
-        g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
+            linePath.attr("d", toLine)
+            g.attr("transform", "translate(" + (-topLeft[0] + 50) + "," + (-topLeft[1] + 50) + ")");
         }
 
     //BUS MARKER MOVEMENT

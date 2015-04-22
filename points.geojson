@@ -50,9 +50,9 @@
 { "type": "Feature", "properties": {"time": null, "id": "route1", "routeDistance": null, "distanceFromBeginning": null, "distanceToNext": null }, "geometry": { "type": "Point", "coordinates": [ -76.48706, 42.46395 ] } },
 { "type": "Feature", "properties": {"time": 122230, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 96, "distanceToNext": 1 }, "geometry": { "type": "Point", "coordinates": [ -76.48706, 42.46289 ] } },
 { "type": "Feature", "properties": {"time": null, "id": "route1", "routeDistance": null, "distanceFromBeginning": null, "distanceToNext": null }, "geometry": { "type": "Point", "coordinates": [ -76.48705, 42.46236 ] } },
-{ "type": "Feature", "properties": {"time": 122300, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 97, "distanceToNext": 1 }, "geometry": { "type": "Point", "coordinates": [ -76.48703, 42.4599 ] } },
-{ "type": "Feature", "properties": {"time": 122320, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 98, "distanceToNext": 2 }, "geometry": { "type": "Point", "coordinates": [ -76.48706, 42.45501 ] } },
+{ "type": "Feature", "properties": {"time": 123500, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 97, "distanceToNext": 1 }, "geometry": { "type": "Point", "coordinates": [ -76.48703, 42.4599 ] } },
+{ "type": "Feature", "properties": {"time": 123650, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 98, "distanceToNext": 2 }, "geometry": { "type": "Point", "coordinates": [ -76.48706, 42.45501 ] } },
 { "type": "Feature", "properties": {"time": null, "id": "route1", "routeDistance": null, "distanceFromBeginning": null, "distanceToNext": null }, "geometry": { "type": "Point", "coordinates": [ -76.48707, 42.45261 ] } },
-{ "type": "Feature", "properties": {"time": 122350, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 100, "distanceToNext": 0 }, "geometry": { "type": "Point", "coordinates": [ -76.48707, 42.4526 ] } }
+{ "type": "Feature", "properties": {"time": 123700, "id": "route1", "routeDistance": 100, "distanceFromBeginning": 100, "distanceToNext": 0 }, "geometry": { "type": "Point", "coordinates": [ -76.48707, 42.4526 ] } }
 
 ] }
