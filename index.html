@@ -5,7 +5,6 @@
     <meta charset="utf-8" />
     <link rel="stylesheet" href="http://cdn.leafletjs.com/leaflet-0.7/leaflet.css" />
     <link href='http://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-
     <script src="http://d3js.org/d3.v3.min.js" charset="utf-8"></script>
     <script src="http://cdn.leafletjs.com/leaflet-0.7/leaflet.js"></script>
     <script src='https://api.tiles.mapbox.com/mapbox.js/v1.6.4/mapbox.js'></script>
@@ -23,15 +22,21 @@
         width: 100%;
         height: 100%;
     }
-    rect{
-        fill:orange;
-    }
     </style>
 
 </head>
 
 <body>
-    <div id="map"></div>
+
+<h2 align="center"> TCAT Bus Routes VS. Time </h2>
+<h4 align="center"> This visualization maps different TCAT bus routes and bus markers according to time. The moving markers on the map represent the location of the bus at a given time. When initialized, the markers move in correspondence to current time. You can also choose to look at the location of a bus along the routes given your own time! Just enter the time in the format HHMMSS where H = Hours in military time, M = Minutes, and S = Seconds. Ex: 7:03 AM = 70300 </h4>
+
+<div id="tools">
+  Time:<input type="text" name="time" id="time" value="Current Time">
+        <input type="submit" onclick="mapIt(document.getElementById('time').value);">
+</div>
+
+<div id="map"></div>
 
     <script type="text/javascript">
 
@@ -45,17 +50,31 @@
     var svg = d3.select(map.getPanes().overlayPane).append("svg");
     var g = svg.append("g").attr("class", "leaflet-zoom-hide");
 
-    d3.json("points1.geojson", function(data) {
+
+    var routes = ["route10","route83"];
+
+    var mapIt = function(time) {
+    for (var j=0; j < routes.length; j++) {
+
+        (function (_j) { 
+
+    d3.json("route10.geojson", function(data) {
 
         // All locations along the route including turns and stops
         var dataPoints = data.features.filter(function(d) {
-            return d.properties.id == "route1"
+            return d.properties.id == routes[_j];
         });
 
         // Just the stops along the route
         var filteredData =  dataPoints.filter(function(d) {
-            return (d.properties.time != null || d.properties.routeDistance != null || d.properties.distanceFromBeginning != null || d.properties.distanceToNext != null) 
+            return ( d.properties.time != null && d.properties.distanceFromBeginning != null && d.properties.distanceToNext != null) 
         });
+
+        var totalLengths = function(routeID) {
+            if (routeID == "route10") {return 1445.4515380859375; }
+            else if (routeID == "route83") {return 2226.420166015625;}
+            else if (routeID ==  "route30") {return 1550.50;}
+            }
 
         var transform = d3.geo.transform ({
             point: projectPoint
@@ -88,24 +107,24 @@
             .data(filteredData)
             .enter()
             .append("circle")
-            .attr("r",2)
-            .style("fill", "blue");
+            .attr("r",2.5)
+            .attr("class", "busStops" + _j);
 
         // Creates a line along the bus route
         var linePath = g.selectAll(".lineConnect")
                 .data([dataPoints])
                 .enter()
                 .append("path")
-                .attr("class", "lineConnect")
+                .attr("class", "lineConnect" + _j)
                 .style("fill", "none")
                 .style("stroke", "black")
-                .style("stroke-width", "2");
+                .style("stroke-width", "1");
 
         // Bus marker that moves along the route
         var bus = g.append("circle")
             .attr("r", 5)
-            .attr("id", "bus")
-            .attr("class", "travelBus");
+            .attr("id", "bus" + _j)
+            .attr("class", "travelBus" + _j);
 
         // Resets the svg when zooming in and out of the map
         map.on("viewreset", reset);
@@ -132,12 +151,6 @@
         }
 
     //BUS MARKER MOVEMENT
-
-        //Returns current time in the format "HMS". Example: 2:02:36 PM = "140236"
-        var timeNow = function() { 
-            var format = d3.time.format("%H%M%S");
-            return format(new Date());
-        }
 
         // Calculates the proportion of the length along a route a bus is at a given time. Example: If at 2:30 PM, halfway through the route, will return .5
         var lengthAtTimeRatio = function (t , dataPoints) {
@@ -169,22 +182,34 @@
 
         // Moves the marker to the position it is at a specific time
         var reCalcPos = function (t, d) {
-            var totalL = linePath.node().getTotalLength(); 
             var lengthRatio = lengthAtTimeRatio(t,d);
-            var l = totalL * lengthRatio;
+            var L = linePath.node().getTotalLength(); 
+            var totalLength = totalLengths(routes[_j]);
+            var l = totalLength * lengthRatio;
             var p = linePath.node().getPointAtLength(l);
-            var bus = d3.select("#bus");
+            var bus = d3.select("#bus" + _j);
             bus.attr("transform", "translate(" + p.x + "," + p.y + ")");
         };
 
+        reset();
         //Repeatedly applies the reCalcPos function on current time
         d3.timer( function() {
-            var t = timeNow();
+            var t = time;
             reCalcPos(t, filteredData);
-        })
-        reset();
+        });
 
-});
+        });
+    })(j);
+    }
+}
+
+//Returns current time in the format "HMS". Example: 2:02:36 PM = "140236"
+        var timeNow = function() { 
+            var format = d3.time.format("%H%M%S");
+            return format(new Date());
+        }
+
+        mapIt(timeNow);
 
     </script>
 </body>
